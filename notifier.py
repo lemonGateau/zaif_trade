@@ -1,0 +1,19 @@
+from ..line_notify_bot import LineNotifyBot
+
+class Notifier:
+    def __init__(self, access_token):
+        self.line_bot = LineNotifyBot(access_token)
+
+
+    def notify_trade_history(self, price, amount, action="bid"):
+        self.line_bot(f'{action}: {price}, {amount}')
+
+    def notify_total_assets(self, total_assets):
+        if self.total_assets is None:
+            profit = 0
+        else:
+            profit = int(total_assets - self.total_assets)
+
+        self.line_bot.send(f'{total_assets}, {profit}')
+
+        self.total_assets = total_assets
