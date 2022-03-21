@@ -47,7 +47,8 @@ def main():
     strage = DataStrage()
     notifier = Notifier(keys.LINE_ACCESS_TOKEN)
 
-    lasts = strage.load_csv("C:\\Users\\manab\\github_\\zaif2\\db\\close.csv")
+    #lasts = strage.load_csv("C:\\Users\\manab\\github_\\zaif_trade\\db\\close.csv")
+    lasts = strage.load_csv(".\\db\\close.csv")
 
     lasts["date"] = pd.to_datetime(lasts["date"])
 

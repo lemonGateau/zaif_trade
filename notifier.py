@@ -1,4 +1,8 @@
-from ..line_notify_bot import LineNotifyBot
+try:
+    from ..notifybot import LineNotifyBot
+except:
+    from notifybot import LineNotifyBot
+
 
 class Notifier:
     def __init__(self, access_token):
