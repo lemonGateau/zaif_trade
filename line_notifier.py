@@ -4,10 +4,10 @@ except:
     from notifybot import LineNotifyBot
 
 
-class Notifier:
+class LineNotifier:
     def __init__(self, access_token):
         self.line_bot = LineNotifyBot(access_token)
-
+        self.total_assets = None
 
     def notify_trade_history(self, price, amount, action="bid"):
         self.line_bot(f'{action}: {price}, {amount}')
@@ -16,8 +16,8 @@ class Notifier:
         if self.total_assets is None:
             profit = 0
         else:
-            profit = int(total_assets - self.total_assets)
+            profit = total_assets - self.total_assets
 
-        self.line_bot.send(f'{total_assets}, {profit}')
+        self.line_bot.send(f'\n{total_assets}\n    {profit}')
 
         self.total_assets = total_assets

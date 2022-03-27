@@ -13,7 +13,7 @@ class Accountant:
         self.coin_asset = assets[1]
 
     def compute_total_assets(self):
-        return self.jpy_asset + self.coin_asset * self.bid_price
+        return int(self.jpy_asset + self.coin_asset * self.bid_price)
 
     def generate_bid_amount(self, min_amount=0.001, usage_rate=1.0):
         bid_amount = (self.jpy_asset * usage_rate) / self.bid_price

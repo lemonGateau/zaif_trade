@@ -11,6 +11,7 @@ class ZaifPrivateApiGateway:
     def extract_assets(self):
         funds = self.client.fetch_funds()
 
+        # ToDo: 手持ち0の場合KeyError
         jpy_asset  = funds["deposit"][self.pair.split("_")[1]]
         coin_asset = funds["deposit"][self.pair.split("_")[0]]
 
