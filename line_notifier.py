@@ -18,6 +18,6 @@ class LineNotifier:
         else:
             profit = total_assets - self.total_assets
 
-        self.line_bot.send(f'\n{total_assets}\n    {profit}')
+        self.line_bot.send(f'{total_assets}    {profit}')
 
         self.total_assets = total_assets

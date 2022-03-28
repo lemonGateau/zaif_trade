@@ -11,7 +11,7 @@ import urllib.parse
 class ZaifApiClient:
     """ ユーザからは見えず、APIと直接やり取りするクラス """
     def __init__(self, pair):
-        self.pair = pair
+        self.pair = pair.lower()
         self.public_end_point  = "https://api.zaif.jp/api/1"
         self.private_end_point = "https://api.zaif.jp/tapi"
 
@@ -68,7 +68,6 @@ class ZaifApiClient:
             return r["return"]
 
         print(r["return"])
-        return
 
     def order(self, price, amount, action='bid'):
         self.nonce += 1

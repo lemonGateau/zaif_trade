@@ -4,16 +4,20 @@ from zaif_api_client import ZaifApiClient
 class ZaifPrivateApiGateway:
     """ APIから得たデータを加工して、ユーザに提供するクラス """
     def __init__(self, pair, access_key, secret_key):
-        self.pair   = pair
+        self.pair   = pair.lower()
         self.client = ZaifApiClient(pair)
         self.client.set_api_keys(access_key, secret_key)
 
     def extract_assets(self):
         funds = self.client.fetch_funds()
 
-        # ToDo: 手持ち0の場合KeyError
-        jpy_asset  = funds["deposit"][self.pair.split("_")[1]]
-        coin_asset = funds["deposit"][self.pair.split("_")[0]]
+        coin_name, jpy = self.pair.split("_")
+
+        jpy_asset  = funds["deposit"][jpy]
+        try:
+            coin_asset = funds["deposit"][coin_name]
+        except:
+            coin_asset = funds["deposit"][coin_name.upper()]
 
         return jpy_asset, coin_asset
 

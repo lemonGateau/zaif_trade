@@ -31,10 +31,12 @@ class LastPricesStore:
 
         _lasts = self.lasts.groupby(pd.Grouper(key="Date", freq=interval))["Last"]
 
-        ohlc = pd.DataFrame()
-        ohlc["Open"]  = _lasts.first()
-        ohlc["High"]  = _lasts.max()
-        ohlc["Low"]   = _lasts.min()
-        ohlc["Close"] = _lasts.last()
+        bars = pd.DataFrame()
+        bars["Open"]  = _lasts.first()
+        bars["High"]  = _lasts.max()
+        bars["Low"]   = _lasts.min()
+        bars["Close"] = _lasts.last()
 
-        return ohlc
+        bars.index = bars.index.tz_localize("UTC").tz_convert("Asia/Tokyo")
+
+        return bars

@@ -2,7 +2,7 @@ import csv
 import sys
 sys.path.append('..')
 import json
-from datetime import datetime
+from datetime import *
 import pandas as pd
 
 import config.config_trade_conditions as conds
@@ -19,18 +19,18 @@ from line_notifier import LineNotifier
 
 try:
     from ..indicators import *
+    from ..cryptowatch import CryptowatchApi
 except:
     from indicators import *
+    from cryptowatch import CryptowatchApi
 
 
 def main():
     pub_api  = ZaifPublicApiGateway(conds.PAIR)
     prv_api = ZaifPrivateApiGateway(conds.PAIR, keys.ACCESS_KEY, keys.SECRET_KEY)
 
-    quotations = pub_api.extract_quotations()
-    #quotations = pub_api.extract_depth_prices(depth_num=4)
-
-    assets= prv_api.extract_assets()
+    quotations = pub_api.extract_depth_prices(depth_num=5)
+    assets     = prv_api.extract_assets()
 
     acct = Accountant(quotations, assets)
 
@@ -39,39 +39,46 @@ def main():
     bid_amount = acct.generate_bid_amount(MIN_AMOUNT, conds.JPY_USAGE_RATE)
     ask_amount = acct.generate_ask_amount(MIN_AMOUNT)
 
-    last_price = pub_api.extract_last_price()
-
     store = LastPricesStore(paths.CSV_DATA_PATH)
 
-    ohlc = store.generate_ohlc(interval=conds.INTERVAL)
+    bars = store.generate_ohlc(interval=conds.INTERVAL)
 
     notifier = LineNotifier(keys.LINE_ACCESS_TOKEN)
-    notifier.notify_total_assets(acct.compute_total_assets())
+
 
     dmi = Dmi()
-    dmi.compute_tr(ohlc["Close"], ohlc["High"], ohlc["Low"])
-    dmi.compute_dms(ohlc["High"], ohlc["Low"])
+    dmi.compute_tr(bars["Close"], bars["High"], bars["Low"])
+    dmi.compute_dms(bars["High"], bars["Low"])
     dmi.compute_dis(inds.ADX_TERM)
     dmi.compute_dx()
     dmi.compute_adx(inds.ADX_TERM)
     dmi.compute_adxr(inds.ADXR_TERM)
 
     macd = CrossMacd()
-    macd.generate_macds(ohlc["Close"], [inds.SHORT_TERM, inds.LONG_TERM], inds.MACD_SIGNAL_TERM)
+    macd.generate_macds(bars["Close"], [inds.SHORT_TERM, inds.LONG_TERM], inds.MACD_SIGNAL_TERM)
 
-    fp = FinalizedProfit(ohlc["Close"], inds.PROFIT_RATIO, inds.LOSS_RATIO)
+    fp = FinalizedProfit(bars["Close"], inds.PROFIT_RATIO, inds.LOSS_RATIO)
 
     strategy = CombinationStrategy([dmi], [macd, fp])
 
+    crypto = CryptowatchApi("bitflyer", "ethjpy")
+    before = datetime.now()
+    after  = before - timedelta(days=60)
+    periods = 300
 
-    for i in range(len(ohlc["Close"])):
-        if strategy.should_buy(i):
-            print("buy ", ohlc["Close"][i])
-            strategy.set_latest_buy_price(ohlc["Close"][i])
+    bars = crypto.generate_ohlc(before, after, periods)
+    print(bars)
 
-        elif strategy.should_sell(i):
-            print("sell", ohlc["Close"][i])
-            strategy.set_latest_buy_price(None)
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

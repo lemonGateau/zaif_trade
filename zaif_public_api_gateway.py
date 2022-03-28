@@ -4,7 +4,7 @@ from zaif_api_client import ZaifApiClient
 class ZaifPublicApiGateway:
     """ APIから得たデータを加工して、ユーザに提供するクラス """
     def __init__(self, pair):
-        self.pair   = pair
+        self.pair   = pair.lower()
         self.client = ZaifApiClient(pair)
 
     def extract_assets(self):
