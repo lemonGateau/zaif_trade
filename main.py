@@ -20,9 +20,11 @@ from line_notifier import LineNotifier
 try:
     from ..indicators import *
     from ..cryptowatch import CryptowatchApi
+    from ..yahoo_finance import YahooFinance
 except:
     from indicators import *
     from cryptowatch import CryptowatchApi
+    from yahoo_finance import YahooFinance
 
 
 def main():
@@ -43,25 +45,7 @@ def main():
 
     bars = store.generate_ohlc(interval=conds.INTERVAL)
 
-    notifier = LineNotifier(keys.LINE_ACCESS_TOKEN)
-
-
-    dmi = Dmi()
-    dmi.compute_tr(bars["Close"], bars["High"], bars["Low"])
-    dmi.compute_dms(bars["High"], bars["Low"])
-    dmi.compute_dis(inds.ADX_TERM)
-    dmi.compute_dx()
-    dmi.compute_adx(inds.ADX_TERM)
-    dmi.compute_adxr(inds.ADXR_TERM)
-
-    macd = CrossMacd()
-    macd.generate_macds(bars["Close"], [inds.SHORT_TERM, inds.LONG_TERM], inds.MACD_SIGNAL_TERM)
-
-    fp = FinalizedProfit(bars["Close"], inds.PROFIT_RATIO, inds.LOSS_RATIO)
-
-    strategy = CombinationStrategy([dmi], [macd, fp])
-
-    crypto = CryptowatchApi("bitflyer", "ethjpy")
+    crypto = CryptowatchApi("bitflyer", conds.PAIR.replace("_", ""))
     before = datetime.now()
     after  = before - timedelta(days=60)
     periods = 300
@@ -69,17 +53,25 @@ def main():
     bars = crypto.generate_ohlc(before, after, periods)
     print(bars)
 
+    range    = "7d"
+    interval = "5m"
 
+    yahoo = YahooFinance(conds.PAIR.replace("_", "-").upper())
+    bars = yahoo.generate_ohlc(range, interval)
 
+    dmi = Dmi()
+    dmi.generate_indicators(bars["Close"], bars["High"], bars["Low"], [inds.ADX_TERM, inds.ADXR_TERM])
 
+    macd = CrossMacd()
+    macd.generate_indicators(bars["Close"], [inds.SHORT_TERM, inds.LONG_TERM], inds.MACD_SIGNAL_TERM)
 
+    fp = FinalizedProfit(bars["Close"])
+    fp.generate_indicators(inds.PROFIT_RATIO, inds.LOSS_RATIO)
 
+    strategy = CombinationStrategy([dmi], [macd, fp])
 
-
-
-
-
-
+    notifier = LineNotifier(keys.LINE_ACCESS_TOKEN)
+    notifier.notify_total_assets(acct.compute_total_assets())
 
 if __name__ == '__main__':
     main()
