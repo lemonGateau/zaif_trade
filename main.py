@@ -41,23 +41,20 @@ def main():
     bid_amount = acct.generate_bid_amount(MIN_AMOUNT, conds.JPY_USAGE_RATE)
     ask_amount = acct.generate_ask_amount(MIN_AMOUNT)
 
-    store = LastPricesStore(paths.CSV_DATA_PATH)
-
-    bars = store.generate_ohlc(interval=conds.INTERVAL)
-
     crypto = CryptowatchApi("bitflyer", conds.PAIR.replace("_", ""))
     before = datetime.now()
-    after  = before - timedelta(days=60)
-    periods = 300
-
+    after  = before - timedelta(days=30)
+    periods = 3600
     bars = crypto.generate_ohlc(before, after, periods)
     print(bars)
 
-    range    = "7d"
-    interval = "5m"
-
     yahoo = YahooFinance(conds.PAIR.replace("_", "-").upper())
+    range    = "30d"
+    interval = "1h"
     bars = yahoo.generate_ohlc(range, interval)
+    print(bars)
+
+    print(pub_api.extract_last_price())
 
     dmi = Dmi()
     dmi.generate_indicators(bars["Close"], bars["High"], bars["Low"], [inds.ADX_TERM, inds.ADXR_TERM])
@@ -72,6 +69,8 @@ def main():
 
     notifier = LineNotifier(keys.LINE_ACCESS_TOKEN)
     notifier.notify_total_assets(acct.compute_total_assets())
+
+
 
 if __name__ == '__main__':
     main()
